@@ -1,10 +1,12 @@
 package com.doux.managementspringbootAzureSql.studentService;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.doux.managementspringbootAzureSql.exeptions.DuplicatePrimaryKeyException;
 import com.doux.managementspringbootAzureSql.exeptions.ResourceNotFoundException;
 import com.doux.managementspringbootAzureSql.model.Student;
 import com.doux.managementspringbootAzureSql.repository.StudentRepo;
@@ -20,19 +22,27 @@ public class StudentService {
 	}
 	
 	public Student getStudentById(Long id) throws ResourceNotFoundException {
-		Student requiredStudent = studentRepo.findById(id).get();
-		if(requiredStudent==null)
-			throw new ResourceNotFoundException("Student with the mentioned id not exist");
-		return requiredStudent;
+		Optional<?> requiredStudent = studentRepo.findById(id);
+		if(requiredStudent.isPresent())
+			return (Student) requiredStudent.get();
+		throw new ResourceNotFoundException("Resource is not found in the database");
+		/*
+		 * Student requiredStudent = studentRepo.findById(id).get();
+		 * if(requiredStudent==null) throw new
+		 * ResourceNotFoundException("Student with the mentioned id not exist"); return
+		 * requiredStudent;
+		 */
 	}
 	
-	public Student postStudentDetails(Student student) {
+	public Student postStudentDetails(Student student) throws DuplicatePrimaryKeyException {
 		try {
-		Student admittedStudent = studentRepo.save(student);
-		return admittedStudent;
-		}catch(Exception e) {
-			throw new RuntimeException(e.getMessage());
+			getStudentById(student.getStudentId());	
+		
+		}catch(ResourceNotFoundException e) {
+			Student admittedStudent = studentRepo.save(student);
+			return admittedStudent;
 		}
+		throw new DuplicatePrimaryKeyException("Found another object with duplicate id in db");
 	}
 	
 	public Student changeStudentDetails(Long id, Student student) throws ResourceNotFoundException {

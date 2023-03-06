@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.doux.managementspringbootAzureSql.exeptions.DuplicatePrimaryKeyException;
 import com.doux.managementspringbootAzureSql.exeptions.ResourceNotFoundException;
 import com.doux.managementspringbootAzureSql.model.Student;
 import com.doux.managementspringbootAzureSql.studentService.StudentService;
@@ -39,7 +40,13 @@ public class StudentController {
 	
 	@PostMapping("/saveStudent")
 	public ResponseEntity<Student> saveStudent(@RequestBody Student student){
-		Student response = studentService.postStudentDetails(student);
+		Student response=null;
+		try {
+			response = studentService.postStudentDetails(student);
+		} catch (DuplicatePrimaryKeyException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return new ResponseEntity<Student>(response, HttpStatus.ACCEPTED);
 	}
 	
